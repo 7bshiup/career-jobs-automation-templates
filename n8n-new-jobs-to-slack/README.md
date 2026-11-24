@@ -2,7 +2,7 @@
 
 Every morning this asks the Apify actor [career-site-jobs](https://apify.com/improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper) for jobs that appeared since its last run at the companies you list, and posts them to a Slack channel. It works with Greenhouse, Lever, Ashby, Workable, Personio and Recruitee boards.
 
-Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned), and that money goes to the person who wrote this template.
+Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned on Apify's Free and Starter plans, less on higher plans), and that money goes to the person who wrote this template.
 
 File: `workflow.json`. In n8n, open a new workflow, then paste the file contents or use *Import from File*.
 
@@ -70,7 +70,7 @@ The estimates come from one 7-day snapshot. Hiring volume changes week to week, 
 
 ## Limits
 
-- **Six systems only:** Greenhouse, Lever, Ashby, Workable, Personio and Recruitee. Workday, SmartRecruiters, iCIMS and LinkedIn are not supported. You list the companies yourself; the actor does not discover them.
+- **Eight systems only:** Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Personio and Recruitee. iCIMS and LinkedIn are not supported. You list the companies yourself; the actor does not discover them.
 - **One task per workflow.** Two workflows that run the same task share one history, so each one misses jobs the other has already received. Runs started directly on the actor (without a task) share a single account-wide history.
 - **A failed run loses its jobs.** If the run fails or times out, the Apify node stops the workflow. Jobs that run had already returned are counted as seen and will not be posted again; open the run in Apify Console to read them. Boards that are missing or slow do not fail a run: they are skipped and listed in the run's `RUN_SUMMARY` record.
 - **What counts as "new".** A job counts as new if its id has not been returned before. A job reposted under a new id appears again. A job that is unlisted for 60 days is forgotten and shows up as new if it comes back.

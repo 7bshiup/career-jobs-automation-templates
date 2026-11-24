@@ -2,7 +2,7 @@
 
 When a scheduled Apify task of the actor [career-site-jobs](https://apify.com/improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper) finishes, Make adds that run's new jobs to a Google Sheet and can post a short digest to Slack. It works with Greenhouse, Lever, Ashby, Workable, Personio and Recruitee boards.
 
-Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned), and that money goes to the person who wrote this template.
+Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned on Apify's Free and Starter plans, less on higher plans), and that money goes to the person who wrote this template.
 
 **This folder contains no blueprint file.** A Make blueprint stores Make's internal module identifiers and connection metadata. Those can only be checked by building the scenario in Make and exporting it, and this template was written without using a Make account. Rather than ship a blueprint that might not import, the steps below set the scenario up module by module. The module names come from Make's Apify app page (apps.make.com/apify) and Apify's Make guide (docs.apify.com/platform/integrations/make). Field labels in Make's editor may differ slightly.
 
@@ -80,5 +80,5 @@ With the sample input, a local read of the live public feeds on 24 Nov 2026 gave
 - **One task per scenario.** Two scenarios watching the same task get the same jobs. Two tasks are separate monitors with separate histories.
 - **A failed run's jobs are not re-sent.** Jobs that a failed or timed-out run had already returned are counted as seen. Open the run in Apify Console to read them. Boards that are missing or slow do not fail a run: they are skipped and listed in the run's `RUN_SUMMARY` record.
 - **What counts as "new".** A job counts as new if its id has not been returned before. A job reposted under a new id appears again. A job that is unlisted for 60 days is forgotten and shows up as new if it comes back.
-- **Six systems only:** Greenhouse, Lever, Ashby, Workable, Personio and Recruitee. Workday, SmartRecruiters, iCIMS and LinkedIn are not supported. You list the companies yourself.
+- **Eight systems only:** Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Personio and Recruitee. iCIMS and LinkedIn are not supported. You list the companies yourself.
 - **Missing data.** `country` and pay can be empty because only what the employer publishes is returned.

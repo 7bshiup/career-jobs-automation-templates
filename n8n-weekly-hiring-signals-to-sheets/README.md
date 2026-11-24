@@ -2,7 +2,7 @@
 
 Every Monday this reads the roles your watchlist companies published in the last 7 days, using the Apify actor [career-site-jobs](https://apify.com/improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper). It writes them to Google Sheets: one tab of jobs and one tab of per-company signals. It works with Greenhouse, Lever, Ashby, Workable, Personio and Recruitee boards. Typical uses are tracking competitors' hiring, recruiter and sales lead lists, and investor watchlists.
 
-Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned), and that money goes to the person who wrote this template.
+Disclosure: built and sold by the actor's owner. The actor is paid ($0.003 per job returned on Apify's Free and Starter plans, less on higher plans), and that money goes to the person who wrote this template.
 
 File: `workflow.json`. In n8n, open a new workflow, then paste the file contents or use *Import from File*.
 
@@ -56,7 +56,7 @@ The estimates come from one 7-day snapshot. One big employer can dominate the to
 
 ## Limits
 
-- **Six systems only:** Greenhouse, Lever, Ashby, Workable, Personio and Recruitee. Workday, SmartRecruiters, iCIMS and LinkedIn are not supported. You list the companies yourself; the actor does not discover them.
+- **Eight systems only:** Greenhouse, Lever, Ashby, Workday, SmartRecruiters, Workable, Personio and Recruitee. iCIMS and LinkedIn are not supported. You list the companies yourself; the actor does not discover them.
 - **The counts are published postings, not headcount.** One posting can cover several hires, and some employers post evergreen roles.
 - **Gaps in Signals.** Companies with no roles in the window get no Signals row. Roles without a publish date are left out by the date filter.
 - **Weekly windows can overlap.** If a run starts later than usual, a role can fall in two weekly windows. `Jobs` stays de-duplicated by `id`, but both weeks' Signals rows count it.
