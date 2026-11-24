@@ -1,0 +1,166 @@
+{
+  "name": "New jobs at target companies to Slack (career-site-jobs)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## New jobs at your target companies, posted to Slack\nEvery morning this asks the Apify actor **career-site-jobs** for jobs that appeared since its last run (`newJobsOnly`) at the companies you list, on Greenhouse, Lever, Ashby, Workable, Personio or Recruitee, and posts one Slack message per 20 new jobs. Days with no new jobs post nothing.\n\n### Setup (about 5 minutes)\n1. **Apify task:** in Apify Console open the actor improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper and click *Save as a new task*. The task keeps this workflow's own history of jobs already sent.\n2. **Run task: new jobs:** create an *Apify API key* credential (Console > Settings > API & Integrations), pick your task, and edit the companies in *Input (JSON)*.\n3. **Post to Slack:** connect Slack and pick the channel.\n4. Run once by hand, then activate.\n\nThe first run returns every matching job from the last 7 days (at most 200), later runs only new ones.\n\n**Disclosure:** built and sold by the actor's owner. This template runs the paid Apify actor improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper ($0.003 per job returned).",
+        "height": 560,
+        "width": 460
+      },
+      "id": "6560c269-cae6-5328-842a-9a008673eed9",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -520,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Cost\n$0.003 per job returned, nothing for days without new jobs. `maxJobs` and *Maximum Cost per Run* ($0.60) cap a run at 200 jobs.\n\n### Limits\nOne task per workflow: two workflows sharing a task hide each other's jobs. A failed run's jobs are not re-sent; open the run in Apify Console to read them. Six applicant tracking systems only (no Workday, SmartRecruiters, LinkedIn).",
+        "height": 300,
+        "width": 420,
+        "color": "5"
+      },
+      "id": "548c3515-4ca4-552f-b85c-2fbe3385e7c4",
+      "name": "Cost and limits",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        400,
+        -200
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "359290ed-c86f-5d65-b708-c7552c666320",
+      "name": "Every day at 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actor tasks",
+        "operation": "Run task and get dataset",
+        "actorTaskId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "useCustomBody": true,
+        "customBody": "{\n  \"companies\": [\n    \"greenhouse:discord\",\n    \"https://jobs.lever.co/spotify\",\n    \"https://tado.jobs.personio.de\",\n    \"ashby:ramp\"\n  ],\n  \"keyword\": \"\",\n  \"country\": \"\",\n  \"postedWithinDays\": 7,\n  \"remoteOnly\": false,\n  \"includeDescription\": false,\n  \"newJobsOnly\": true,\n  \"maxJobs\": 200\n}",
+        "memory": 1024,
+        "maxTotalChargeUsd": 0.6
+      },
+      "id": "9f8404e9-7b66-5d08-aee8-827a7ea6f93d",
+      "name": "Run task: new jobs",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        240,
+        160
+      ],
+      "credentials": {
+        "apifyApi": {
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// One Slack message per 20 new jobs, so a busy day never floods the channel.\nconst PER_MESSAGE = 20;\nconst jobs = $input.all().map((item) => item.json).filter((j) => j && j.id && j.title);\nif (jobs.length === 0) return [];\n\nconst esc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst link = (u) => String(u ?? '').replace(/\\|/g, '%7C').replace(/>/g, '%3E');\nconst money = (n) => Math.round(n).toLocaleString('en-US');\n\njobs.sort((a, b) => String(a.company).localeCompare(String(b.company)) || String(a.title).localeCompare(String(b.title)));\nconst lines = jobs.map((j) => {\n  const where = [j.location, j.remote ? 'remote' : ''].filter(Boolean).join(', ');\n  let pay = '';\n  if (j.salary_min != null || j.salary_max != null) {\n    const range = [j.salary_min, j.salary_max].filter((v) => v != null).map(money).join('-');\n    pay = ` | ${j.salary_currency || ''} ${range}${j.salary_period ? ' per ' + j.salary_period : ''}`;\n  }\n  const title = j.url ? `<${link(j.url)}|${esc(j.title)}>` : esc(j.title);\n  return `• ${title} at *${esc(j.company || j.board)}*${where ? ' (' + esc(where) + ')' : ''}${esc(pay)}`;\n});\n\nconst parts = Math.ceil(lines.length / PER_MESSAGE);\nconst out = [];\nfor (let p = 0; p < parts; p++) {\n  const head = `*${jobs.length} new job${jobs.length === 1 ? '' : 's'} at your target companies*` + (parts > 1 ? ` (${p + 1}/${parts})` : '');\n  out.push({ json: { text: [head, ...lines.slice(p * PER_MESSAGE, (p + 1) * PER_MESSAGE)].join('\\n') } });\n}\nreturn out;\n"
+      },
+      "id": "38027d81-37e5-524b-ba25-1650813502c6",
+      "name": "Build Slack digest",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "text": "={{ $json.text }}",
+        "otherOptions": {
+          "mrkdwn": true,
+          "unfurl_links": false,
+          "includeLinkToWorkflow": false
+        }
+      },
+      "id": "5b944163-3c0c-5062-863f-b8d236274b41",
+      "name": "Post to Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        720,
+        160
+      ],
+      "credentials": {
+        "slackApi": {
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every day at 08:00": {
+      "main": [
+        [
+          {
+            "node": "Run task: new jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run task: new jobs": {
+      "main": [
+        [
+          {
+            "node": "Build Slack digest",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Slack digest": {
+      "main": [
+        [
+          {
+            "node": "Post to Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}

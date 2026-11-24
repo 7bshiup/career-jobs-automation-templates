@@ -1,0 +1,393 @@
+{
+  "name": "Weekly hiring signals to Google Sheets (career-site-jobs)",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## Weekly hiring signals for a company watchlist\nEvery Monday this reads the roles your watchlist companies published in the last 7 days (Greenhouse, Lever, Ashby, Workable, Personio, Recruitee) with the Apify actor **career-site-jobs**, then writes two Google Sheets tabs:\n- **Jobs**: one row per role, matched on `id`, so a rerun updates rows instead of duplicating them.\n- **Signals**: one row per company per week: roles posted, top departments and countries, remote roles, roles with pay.\n\n### Setup (about 5 minutes)\n1. **Watchlist and filters:** list companies as career page URLs, `system:board` (`greenhouse:discord`) or bare board names.\n2. **Read new roles:** create an *Apify API key* credential (Console > Settings > API & Integrations).\n3. Create a Google Sheet with two tabs named **Jobs** and **Signals** (headers are added on the first run). In both Sheets nodes connect Google and pick the spreadsheet.\n4. Run once by hand, then activate.\n\n**Disclosure:** built and sold by the actor's owner. This template runs the paid Apify actor improved_gravity_qb7/greenhouse-lever-ashby-personio-jobs-scraper ($0.003 per job returned).",
+        "height": 620,
+        "width": 480
+      },
+      "id": "e1124c4b-5124-50db-8739-e4d2de5345c5",
+      "name": "About this workflow",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "content": "### Cost\n$0.003 per role returned. `maxJobs` (500) and *Maximum Cost per Run* ($1.50) cap a run. Roles are counted once per run, filtered to the last 7 days, so cost follows hiring volume, not board size.\n\n### Limits\nCompanies with no new roles get no Signals row. Roles without a publish date are left out. Counts are published postings, not headcount.",
+        "height": 300,
+        "width": 440,
+        "color": "5"
+      },
+      "id": "24694e79-59c8-59fb-84eb-7126e154aff2",
+      "name": "Cost and limits",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        420,
+        -260
+      ]
+    },
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "weeks",
+              "triggerAtDay": [
+                1
+              ],
+              "triggerAtHour": 8
+            }
+          ]
+        }
+      },
+      "id": "38c29126-c26d-5f52-bf8b-68823e1ab078",
+      "name": "Every Monday at 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -40,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6d29dbfd-4847-56b3-b414-35f5531aa7a1",
+              "name": "companies",
+              "type": "array",
+              "value": "[\"greenhouse:stripe\", \"lever:spotify\", \"ashby:linear\", \"recruitee:bunq\", \"personio:1komma5grad\"]"
+            },
+            {
+              "id": "fc052e7d-791f-5b8b-b687-b3b5b49892b2",
+              "name": "keyword",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "87850287-fe7f-5d3d-9519-cafdea74a8fa",
+              "name": "country",
+              "type": "string",
+              "value": ""
+            },
+            {
+              "id": "332a41ef-36e5-5112-9d2d-5bc4e0af3345",
+              "name": "postedWithinDays",
+              "type": "number",
+              "value": 7
+            },
+            {
+              "id": "e9f6d042-055a-52a4-a71f-a8279bb7dd30",
+              "name": "maxJobs",
+              "type": "number",
+              "value": 500
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "47cc5f23-b2bf-5833-8cfd-b0a9ca4089aa",
+      "name": "Watchlist and filters",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        180,
+        160
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Actors",
+        "operation": "Run actor and get dataset",
+        "actorId": {
+          "__rl": true,
+          "value": "go8YB1qv3eEb4IU4J",
+          "mode": "id"
+        },
+        "actorInputMode": "json",
+        "customBody": "={{ JSON.stringify({ companies: $json.companies, keyword: $json.keyword || undefined, country: $json.country || undefined, postedWithinDays: $json.postedWithinDays, includeDescription: false, maxJobs: $json.maxJobs }) }}",
+        "memory": 1024,
+        "maxTotalChargeUsd": 1.5
+      },
+      "id": "b6b0fbaf-fc23-551e-a195-a0b367cee401",
+      "name": "Read new roles",
+      "type": "@apify/n8n-nodes-apify.apify",
+      "typeVersion": 1,
+      "position": [
+        400,
+        160
+      ],
+      "credentials": {
+        "apifyApi": {
+          "name": "Apify account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5ca8dd9a-e9b5-5718-be34-f4d6b95b50c2",
+              "name": "id",
+              "type": "string",
+              "value": "={{ $json.id }}"
+            },
+            {
+              "id": "4a234976-e3e9-5cb9-a10c-7873c04e5869",
+              "name": "company",
+              "type": "string",
+              "value": "={{ $json.company }}"
+            },
+            {
+              "id": "d20dabee-8049-530f-9253-300fded877f1",
+              "name": "title",
+              "type": "string",
+              "value": "={{ $json.title }}"
+            },
+            {
+              "id": "6554fb94-fab7-51a3-bece-ddb753ba6fd3",
+              "name": "department",
+              "type": "string",
+              "value": "={{ $json.department }}"
+            },
+            {
+              "id": "26db9d6f-f19a-5a7a-8d0e-1e54103b15f9",
+              "name": "location",
+              "type": "string",
+              "value": "={{ $json.location }}"
+            },
+            {
+              "id": "addd5126-34a7-5792-8a7a-f52260d0db27",
+              "name": "country",
+              "type": "string",
+              "value": "={{ $json.country }}"
+            },
+            {
+              "id": "793df676-18bb-56a9-8055-5bd3d86cad42",
+              "name": "remote",
+              "type": "boolean",
+              "value": "={{ $json.remote }}"
+            },
+            {
+              "id": "99457c27-2a9a-529d-87e8-0a36132ee781",
+              "name": "salary_min",
+              "type": "number",
+              "value": "={{ $json.salary_min }}"
+            },
+            {
+              "id": "0342eecb-5ab8-5269-93c2-1fe0602a2f87",
+              "name": "salary_max",
+              "type": "number",
+              "value": "={{ $json.salary_max }}"
+            },
+            {
+              "id": "0041a11d-1c4d-5ec5-b5d4-85d715b29aa6",
+              "name": "salary_currency",
+              "type": "string",
+              "value": "={{ $json.salary_currency }}"
+            },
+            {
+              "id": "f0c42a21-f701-5718-8d15-7e03bdc1396f",
+              "name": "salary_period",
+              "type": "string",
+              "value": "={{ $json.salary_period }}"
+            },
+            {
+              "id": "f2cdee27-c962-5b81-902e-29de7c85347c",
+              "name": "posted_at",
+              "type": "string",
+              "value": "={{ $json.posted_at }}"
+            },
+            {
+              "id": "2a54c45e-4e2e-5c87-90bb-5900b20497d4",
+              "name": "url",
+              "type": "string",
+              "value": "={{ $json.url }}"
+            },
+            {
+              "id": "066e9ea3-9e52-5b5c-8eee-1e521d1baae3",
+              "name": "board",
+              "type": "string",
+              "value": "={{ $json.system }}:{{ $json.board }}"
+            },
+            {
+              "id": "eb966124-655b-525b-b3bd-77112ba41f2d",
+              "name": "last_seen",
+              "type": "string",
+              "value": "={{ $now.toISODate() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c1d5a74f-1b5e-516d-bc03-cd0a1bbaca96",
+      "name": "Job row columns",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        640,
+        60
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Jobs",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "3f46597d-470b-5f35-ad5b-7e79fb3369e7",
+      "name": "Jobs tab: add or update by id",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        60
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// One row per company: how many roles it published in the window, and where it is hiring.\nconst jobs = $input.all().map((item) => item.json).filter((j) => j && j.id);\nif (jobs.length === 0) return [];\n\nconst settings = $('Watchlist and filters').first().json;\nconst week = $now.toISODate();\nconst groups = new Map();\nfor (const j of jobs) {\n  const board = `${j.system}:${j.board}`;\n  if (!groups.has(board)) groups.set(board, { company: j.company || j.board, board, jobs: [] });\n  groups.get(board).jobs.push(j);\n}\nconst top = (values, n) => {\n  const counts = {};\n  for (const v of values) if (v) counts[v] = (counts[v] || 0) + 1;\n  return Object.entries(counts)\n    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))\n    .slice(0, n)\n    .map(([k, c]) => `${k} (${c})`)\n    .join(', ');\n};\n\nreturn [...groups.values()]\n  .sort((a, b) => b.jobs.length - a.jobs.length || String(a.company).localeCompare(String(b.company)))\n  .map((g) => ({\n    json: {\n      week,\n      company: g.company,\n      board: g.board,\n      window_days: settings.postedWithinDays,\n      roles_posted: g.jobs.length,\n      top_departments: top(g.jobs.map((j) => j.department), 3),\n      top_countries: top(g.jobs.flatMap((j) => (j.countries && j.countries.length ? j.countries : [j.country])), 3),\n      remote_roles: g.jobs.filter((j) => j.remote).length,\n      roles_with_salary: g.jobs.filter((j) => j.salary_min != null || j.salary_max != null).length,\n      example_titles: g.jobs.slice(0, 3).map((j) => j.title).join(' | '),\n    },\n  }));\n"
+      },
+      "id": "076884cc-e01e-5987-9b53-e54d7c3a2341",
+      "name": "Summarise per company",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        640,
+        280
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "",
+          "mode": "list"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Signals",
+          "mode": "name"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "schema": []
+        },
+        "options": {}
+      },
+      "id": "28210079-fec6-5494-91f0-cd5adbc8e2c8",
+      "name": "Signals tab: add rows",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        280
+      ],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Monday at 08:00": {
+      "main": [
+        [
+          {
+            "node": "Watchlist and filters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Watchlist and filters": {
+      "main": [
+        [
+          {
+            "node": "Read new roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read new roles": {
+      "main": [
+        [
+          {
+            "node": "Job row columns",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Summarise per company",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Job row columns": {
+      "main": [
+        [
+          {
+            "node": "Jobs tab: add or update by id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarise per company": {
+      "main": [
+        [
+          {
+            "node": "Signals tab: add rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "tags": []
+}
